@@ -23,6 +23,7 @@ class TypeScriptExportExtractor {
     }
 
     _buildUrl(provider) {
+        console.log(`${this.baseUrl}/${provider}.ts`)
         return `${this.baseUrl}/${provider}.ts`;
     }
 
