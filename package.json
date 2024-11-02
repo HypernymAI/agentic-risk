@@ -8,6 +8,7 @@
   "license": "ISC",
   "dependencies": {
     "fetchfox": "^0.0.32",
+    "jsdom": "^25.0.1",
     "playwright": "^1.48.2"
   },
   "devDependencies": {
