@@ -25,7 +25,7 @@ def analyze_content(input_json: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         
     # Prepare request payload
     payload = {
-        "terms_of_service": input_json["termsOfService"]["plainText"],
+        "essay_text": input_json["termsOfService"]["plainText"],
         "message_history": input_json.get("messageHistory", "")  # Use empty string if no messages
     }
     
@@ -33,6 +33,7 @@ def analyze_content(input_json: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         "Content-Type": "application/json",
         "X-API-Key": api_key
     }
+    print(payload)
     
     try:
         # Make POST request
