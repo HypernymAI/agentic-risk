@@ -268,7 +268,8 @@ async function callOpenAI(data) {
                 
               }
           ],
-          temperature: 0.7
+          temperature: 0.7,
+          max_tokens:160000
         })
       });
   
