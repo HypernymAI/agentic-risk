@@ -1,35 +1,34 @@
+# semantic_compression.py
 import requests
 import json
 import argparse
 from typing import Dict, Any, Optional
 
-def analyze_terms_of_service(input_json: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def analyze_content(input_json: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Analyzes terms of service text using the FC API backend.
+    Analyzes both terms of service and message history using the FC API backend.
     
     Args:
-        input_json (dict): Input JSON containing termsOfService field
+        input_json (dict): Input JSON containing termsOfService and messageHistory fields
     
     Returns:
         dict: API response containing analysis results
-        None: If request fails or termsOfService field is missing
+        None: If request fails or required fields are missing
     """
-    # API endpoint and key
     url = "http://fc-api.hypernym.ai/analyze_sync"
     api_key = "fkd8493jg7392bduw"
     
-    # Check if termsOfService field exists
+    # Check for required fields
     if 'termsOfService' not in input_json:
         print("Error: termsOfService field not found in input JSON")
         return None
-    
+        
     # Prepare request payload
     payload = {
-        "essay_text": input_json["termsOfService"]["plainText"]
+        "terms_of_service": input_json["termsOfService"]["plainText"],
+        "message_history": input_json.get("messageHistory", "")  # Use empty string if no messages
     }
-    print(payload)
     
-    # Set headers
     headers = {
         "Content-Type": "application/json",
         "X-API-Key": api_key
@@ -58,8 +57,8 @@ def analyze_terms_of_service(input_json: Dict[str, Any]) -> Optional[Dict[str, A
 
 def main():
     # Set up argument parser
-    parser = argparse.ArgumentParser(description='Analyze terms of service from JSON file')
-    parser.add_argument('input_file', help='Path to input JSON file')
+    parser = argparse.ArgumentParser(description='Analyze terms of service and message history from JSON file')
+    parser.add_argument('input_file', help='Path to combined JSON file from firstPage.js')
     parser.add_argument('--output', help='Path to output JSON file (optional)')
     
     # Parse arguments
@@ -70,8 +69,8 @@ def main():
         with open(args.input_file, 'r') as f:
             input_json = json.load(f)
             
-        # Analyze the terms of service
-        result = analyze_terms_of_service(input_json)
+        # Analyze the content
+        result = analyze_content(input_json)
         
         if result:
             # If output file is specified, write to file
