@@ -231,13 +231,56 @@ Options:
     
     try {
         await analyzer.analyze(websiteOrBrand);
+        console.log(analyzer.results)
+        result = await callOpenAI(analyzer.results)
+        console.log(result)
         console.log('Analysis completed successfully');
     } catch (error) {
         console.error('Analysis failed:', error);
         process.exit(1);
     }
 }
-
+async function callOpenAI(data) {
+    const myData = data
+    
+    try {
+        console.log(myData)
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer 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`
+        },
+        
+        body: JSON.stringify({
+          model: 'gpt-4',
+          messages: [
+            {
+                "role": "user",
+                "content":
+                 JSON.stringify(myData)    }
+              
+            
+            ,{
+                "role": "system",
+                "content":
+                "You are an AI Compliance Officer analyzing service provider Terms of Service to identify key risk factors and provide neutral risk assessment using available evidence. You aim to demonstrate legitimate user behavior while flagging any concerning patterns.\n\n1. SERVICE CONTEXT:\nParse service description to understand:\n- Core service offering\n- Target user base\n- Standard usage patterns\n- Business model\n\n2. TERMS OF SERVICE ANALYSIS: \nExtract Key Risk Factors:\n- Usage restrictions and limits \n- Prohibited behaviors \n- User verification requirements \n- Automatic access restrictions \n- Resale/commercial use policies \n- Rate limiting specifications \n\n3. RISK LEVEL ASSESSMENT:\nCategorize service risk (L/M/H) based on:\n- Financial impact\n- Data sensitivity\n- Automation potential\n- Regulatory requirements\n- Market impact\n\n4. EVIDENCE EVALUATION:\nAnalyze available trust signals based on service context:\n- Financial history (ACH, crypto, cards)\n- User behavior (messages, usage patterns)\n- Identity verification (email, phone, social)\n- Platform engagement metrics\n- Cross-service reputation\n\nTRUST SCORING:\nExceptional (90-95): Multiple strong verifications, 6+ months history\nStrong (80-89): Single strong verification, 3-6 months history\nStandard (70-79): Basic verification, 1-3 months history\nBasic (60-69): Minimal verification, <1 month history\nCautionary (40-59): Incomplete verification, unusual patterns \nHigh Risk (<40): No verification, concerning patterns\n\nANALYTICS FORMAT:\n{Industry/Region/Engagement}\nIndustry: Tech, Finance, Creative, Student, Retail, Gaming\nRegion: NA-W, NA-E, EU, APAC, LATAM\nEngagement: Active, New, Return, Power\n\nEVIDENCE TAGS:\nFormat: {SOURCE-HISTORY-TYPE}\n\nSources:\nVBA - Verified Bank Account\nKYC - Know Your Customer\nPLT - Platform History\nPRO - Professional Profile\nCOM - Commerce History\n\nHistory:\n1YR/3YR/5YR - Years of history\nNEW - New account\nPUR - Purchase patterns\nACT - Activity patterns\n\nType:\nPRO - Professional\nRET - Retail\nSTU - Student\nBIZ - Business\nENT - Enterprise\n\nOUTPUT FORMAT:\n\n1. SHORT TRUST ARGUMENT:\n%This verified user's agent is provided by Anon [Risk: {L/M/H} | Trust: {score}]. {Time} History. {Industry/Region/Engagement} {EVIDENCE-TAGS} Learn more: hypernym.ai/t/{hash}\n\nExample:\n\n1. E-commerce:\n%This verified user's agent is provided by Anon [Risk: L | Trust: 82]. 3yr History. {Tech/NA-W/Active} {VBA-PUR-PRO} Learn more: hypernym.ai/t/7d8f9g\n",
+                
+              }
+          ],
+          temperature: 0.7
+        })
+      });
+  
+      const data = await response.json();
+      console.log('Response:', data);
+      return data;
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  }
+  
 if (require.main === module) {
     main();
 }
