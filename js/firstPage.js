@@ -1,5 +1,21 @@
+// firstPage.js
 const { chromium } = require('playwright');
 const { JSDOM } = require('jsdom');
+
+async function getMessageHistory() {
+    try {
+        const messages = await require('fs').promises.readFile('allMessages.txt', 'utf8');
+        return messages;
+    } catch {
+        try {
+            const dummyData = await require('fs').promises.readFile('dummyLinkedIn.txt', 'utf8');
+            return dummyData;
+        } catch {
+            console.warn('No message history found');
+            return '';
+        }
+    }
+}
 
 async function extractCleanWebsiteInfo(websiteOrBrand) {
     const browser = await chromium.launch({ headless: true });
@@ -44,24 +60,25 @@ async function extractCleanWebsiteInfo(websiteOrBrand) {
         
         // Get ToS content and clean it
         const tosContent = await page.evaluate(() => {
-            // Get the body content
             const content = document.body.innerText || document.body.textContent;
             
-            // Remove extra whitespace and normalize spaces
             return content
                 .replace(/\s+/g, ' ')
                 .replace(/[\r\n]+/g, '\n')
                 .trim();
         });
 
-        // Further clean the text by removing quotes and normalizing whitespace
+        // Clean the text
         const cleanText = tosContent
-            .replace(/['"]/g, '') // Remove all quotes
-            .replace(/\s+/g, ' ') // Normalize spaces
-            .replace(/\n\s+/g, '\n') // Clean up spaces at start of lines
+            .replace(/['"]/g, '')
+            .replace(/\s+/g, ' ')
+            .replace(/\n\s+/g, '\n')
             .trim();
 
-        // Create simplified JSON structure
+        // Get message history
+        const messageHistory = await getMessageHistory();
+
+        // Create combined data structure
         const websiteData = {
             mainWebsite: {
                 url: mainWebsiteUrl,
@@ -72,19 +89,21 @@ async function extractCleanWebsiteInfo(websiteOrBrand) {
                 url: tosUrl,
                 plainText: cleanText,
                 extractedAt: new Date().toISOString()
-            }
+            },
+            messageHistory: messageHistory
         };
 
         // Save to file
-        const filename = `${websiteOrBrand.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_metadata.json`;
+        const filename = `${websiteOrBrand.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_combined_data.json`;
         require('fs').writeFileSync(
             filename,
             JSON.stringify(websiteData, null, 2)
         );
 
-        console.log(`Website data extracted and saved to ${filename}`);
+        console.log(`Combined data extracted and saved to ${filename}`);
         console.log('Main website URL:', mainWebsiteUrl);
         console.log('ToS URL:', tosUrl);
+        console.log('Message history included:', messageHistory ? 'Yes' : 'No');
         
         return websiteData;
         
@@ -100,8 +119,8 @@ async function extractCleanWebsiteInfo(websiteOrBrand) {
 const input = process.argv[2];
 if (!input) {
     console.error('Please provide a website or brand name as an argument.');
-    console.error('Usage: node script.js nike.com');
-    console.error(' or: node script.js "Nike"');
+    console.error('Usage: node script.js example.com');
+    console.error(' or: node script.js "Brand Name"');
     process.exit(1);
 }
 
