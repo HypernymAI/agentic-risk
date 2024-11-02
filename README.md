@@ -1,1 +1,1 @@
-# solana-hack
+# agentic-finance hackathon
